@@ -49,5 +49,8 @@ Thumbs.db
 # Uploaded files (optional - comment out if you want to track uploads)
 static/resources/*
 !static/resources/.gitkeep
+
+# Owner photo - allow initial photo
 static/owner/*
 !static/owner/.gitkeep
+!static/owner/mee.jpeg

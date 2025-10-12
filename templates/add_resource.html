@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-plus-circle text-primary"></i> Add New Resource
+                </h2>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Resource Name *</label>
+                        <input type="text" class="form-control" id="name" 
+                               name="name" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="link" class="form-label">External Link (URL)</label>
+                        <input type="url" class="form-control" id="link" 
+                               name="link" placeholder="https://example.com">
+                        <small class="text-secondary">
+                            Optional: Provide an external link to the resource
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Upload File (Optional)</label>
+                        <input type="file" class="form-control" id="file" name="file">
+                        <small class="text-secondary">
+                            Max file size: 5 MB. Allowed formats: PDF, DOC, DOCX, TXT, JPG, PNG, ZIP, RAR
+                        </small>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        You can provide either a link, a file, or both. At least one is required.
+                    </div>
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-cloud-upload"></i> Upload Resource
+                        </button>
+                        <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

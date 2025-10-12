@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-10 col-lg-8">
+        <div class="card">
+            <div class="card-body p-5">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-clipboard-check text-primary"></i> Practice MCQ
+                </h2>
+                
+                <div class="text-center mb-5">
+                    <p class="lead text-secondary">Test your knowledge with multiple choice questions</p>
+                </div>
+
+                <!-- Sample MCQ Section - You can customize this -->
+                <div id="mcq-container">
+                    <div class="alert alert-info text-center">
+                        <i class="bi bi-info-circle"></i>
+                        <h5 class="mt-2">MCQ Section Coming Soon!</h5>
+                        <p class="mb-0">
+                            This section will contain practice questions for Class 10 subjects.
+                            Check back later for updates!
+                        </p>
+                    </div>
+
+                    <!-- Example of how MCQs could be structured -->
+                    <div class="card mb-3 d-none" id="sample-mcq">
+                        <div class="card-body">
+                            <h5 class="card-title">Question 1: Sample Question</h5>
+                            <p class="card-text">What is the capital of India?</p>
+                            
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q1" id="q1a" value="a">
+                                <label class="form-check-label" for="q1a">Mumbai</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q1" id="q1b" value="b">
+                                <label class="form-check-label" for="q1b">New Delhi</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q1" id="q1c" value="c">
+                                <label class="form-check-label" for="q1c">Kolkata</label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="radio" name="q1" id="q1d" value="d">
+                                <label class="form-check-label" for="q1d">Chennai</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4 d-none" id="submit-section">
+                        <button class="btn btn-primary btn-lg" onclick="submitMCQ()">
+                            <i class="bi bi-check-circle"></i> Submit Answers
+                        </button>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function submitMCQ() {
+    // This is a placeholder function
+    // You can implement actual MCQ checking logic here
+    alert('MCQ submission functionality will be implemented soon!');
+}
+
+// You can add JavaScript to load MCQs dynamically from a database or JSON file
+</script>
+{% endblock %}

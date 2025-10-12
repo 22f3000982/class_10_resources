@@ -28,8 +28,9 @@
 <div class="search-container">
     <form method="GET" action="{{ url_for('index') }}">
         <div class="input-group">
-            <input type="text" name="search" class="form-control search-input" 
-                   placeholder="Search resources..." value="{{ search_query or '' }}">
+            <input type="text" name="search" id="searchInput" class="form-control search-input" 
+                   placeholder="Search resources..." value="{{ search_query or '' }}"
+                   oninput="autoSearch()">
             <button class="btn btn-primary" type="submit">
                 <i class="bi bi-search"></i> Search
             </button>
@@ -153,6 +154,30 @@ function fallbackShare() {
     } else {
         prompt('Copy this link:', url);
     }
+}
+
+// Auto-search as user types
+let searchTimeout;
+function autoSearch() {
+    const searchInput = document.getElementById('searchInput');
+    const searchValue = searchInput.value;
+    
+    // Clear previous timeout
+    clearTimeout(searchTimeout);
+    
+    // Wait 500ms after user stops typing before searching
+    searchTimeout = setTimeout(() => {
+        const url = new URL(window.location.href);
+        if (searchValue.trim() === '') {
+            // If search is empty, reload without search parameter
+            url.searchParams.delete('search');
+        } else {
+            // Set search parameter
+            url.searchParams.set('search', searchValue);
+        }
+        // Navigate to the new URL
+        window.location.href = url.toString();
+    }, 500);
 }
 </script>
 {% endblock %}

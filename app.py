@@ -69,7 +69,7 @@ def login_required(f):
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return decorated_function
-
+#
 @app.route('/')
 def index():
     conn = sqlite3.connect('database.db')

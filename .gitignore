@@ -27,9 +27,9 @@ wheels/
 instance/
 .webassets-cache
 
-# Database
-*.db
-*.sqlite
+# Database - Commented out to allow database.db to be pushed
+# *.db
+# *.sqlite
 
 # Environment
 .env

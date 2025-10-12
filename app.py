@@ -46,10 +46,11 @@ def init_db():
     # Insert default owner info if not exists
     c.execute('SELECT COUNT(*) FROM owner_info')
     if c.fetchone()[0] == 0:
-        c.execute('''INSERT INTO owner_info (id, name, description, contact, telegram_link, instagram_link, mcq_link)
+        c.execute('''INSERT INTO owner_info (id, name, description, contact, photo_filename, telegram_link, instagram_link, mcq_link)
                      VALUES (1, 'Ashish Maurya', 
                              'Class 10 Resource Manager | Pursuing BS in Data Science at IIT Madras | Web Developer & Physics Teacher | Passionate about technology and education', 
-                             'ashraj77777@gmail.com', 
+                             'ashraj77777@gmail.com',
+                             'mee.jpeg',
                              'https://t.me/chaipe_charcha', 'https://www.instagram.com/ashraj77777/', 
                              'https://www.perplexity.ai/apps/1d5d3a09-a3b4-4c9d-ae02-b5951bb98a80')''')
     

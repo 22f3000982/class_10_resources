@@ -14,7 +14,7 @@
             --bg-tertiary: #ffffff;
             --text-primary: #24292f;
             --text-secondary: #57606a;
-            --border-color: #d0d7de;
+            --border-color: #cbd2d9;
             --accent-color: #0969da;
             --success-color: #1a7f37;
             --danger-color: #cf222e;
@@ -66,6 +66,31 @@
 
         .nav-link:hover {
             color: var(--accent-color) !important;
+        }
+
+        /* Mobile Menu Toggler - Fixed for light mode */
+        .navbar-toggler {
+            border-color: var(--border-color);
+        }
+
+        .navbar-toggler-icon {
+            background-image: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.5em;
+            height: 1.5em;
+        }
+
+        .navbar-toggler-icon::before {
+            content: "☰";
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        .navbar-toggler:focus {
+            box-shadow: 0 0 0 0.25rem rgba(var(--accent-color), 0.25);
         }
 
         .btn-primary {

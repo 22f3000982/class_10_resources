@@ -114,6 +114,16 @@ def logout():
     flash('Logged out successfully!', 'success')
     return redirect(url_for('index'))
 
+@app.route('/download-database')
+@login_required
+def download_database():
+    """Admin route to download the database file for backup"""
+    try:
+        return send_from_directory('.', 'database.db', as_attachment=True, download_name='database_backup.db')
+    except Exception as e:
+        flash(f'Error downloading database: {str(e)}', 'error')
+        return redirect(url_for('index'))
+
 @app.route('/add-resource', methods=['GET', 'POST'])
 @login_required
 def add_resource():

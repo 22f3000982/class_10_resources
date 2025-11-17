@@ -29,7 +29,6 @@ def init_db():
                   name TEXT NOT NULL,
                   link TEXT,
                   filename TEXT,
-                  view_count INTEGER DEFAULT 0,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Owner info table
@@ -213,10 +212,6 @@ def view_resource(id):
     conn = sqlite3.connect('database.db')
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
-    
-    # Increment view count
-    c.execute('UPDATE resources SET view_count = view_count + 1 WHERE id = ?', (id,))
-    conn.commit()
     
     # Get resource info
     c.execute('SELECT * FROM resources WHERE id = ?', (id,))

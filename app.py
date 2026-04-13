@@ -41,6 +41,13 @@ def init_db():
                   telegram_link TEXT,
                   instagram_link TEXT,
                   mcq_link TEXT)''')
+
+    # DPP table
+    c.execute('''CREATE TABLE IF NOT EXISTS dpps
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  title TEXT NOT NULL,
+                  drive_link TEXT NOT NULL,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Insert default owner info if not exists
     c.execute('SELECT COUNT(*) FROM owner_info')
@@ -88,12 +95,16 @@ def index():
     # Get owner info for social links
     c.execute('SELECT * FROM owner_info WHERE id = 1')
     owner_info = c.fetchone()
+
+    # Get all DPPs
+    c.execute('SELECT * FROM dpps ORDER BY created_at DESC')
+    dpps = c.fetchall()
     
     conn.close()
     
     is_admin = 'admin' in session
-    return render_template('index.html', resources=resources, is_admin=is_admin, 
-                          search_query=search_query, owner_info=owner_info)
+    return render_template('index.html', resources=resources, is_admin=is_admin,
+                          search_query=search_query, owner_info=owner_info, dpps=dpps)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -289,5 +300,62 @@ def about_owner():
 def practice_mcq():
     return render_template('practice_mcq.html')
 
+# ── DPP routes ────────────────────────────────────────────────────────────────
+
+@app.route('/dpp')
+def dpp_page():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM dpps ORDER BY created_at DESC')
+    dpps = c.fetchall()
+    conn.close()
+    is_admin = 'admin' in session
+    return render_template('dpp.html', dpps=dpps, is_admin=is_admin)
+
+@app.route('/add-dpp', methods=['POST'])
+@login_required
+def add_dpp():
+    title = request.form.get('title', '').strip()
+    drive_link = request.form.get('drive_link', '').strip()
+    if not title or not drive_link:
+        flash('Title and Drive link are required!', 'error')
+        return redirect(url_for('dpp_page'))
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO dpps (title, drive_link) VALUES (?, ?)', (title, drive_link))
+    conn.commit()
+    conn.close()
+    flash('DPP added successfully!', 'success')
+    return redirect(url_for('dpp_page'))
+
+@app.route('/edit-dpp/<int:id>', methods=['POST'])
+@login_required
+def edit_dpp(id):
+    title = request.form.get('title', '').strip()
+    drive_link = request.form.get('drive_link', '').strip()
+    if not title or not drive_link:
+        flash('Title and Drive link are required!', 'error')
+        return redirect(url_for('dpp_page'))
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('UPDATE dpps SET title = ?, drive_link = ? WHERE id = ?', (title, drive_link, id))
+    conn.commit()
+    conn.close()
+    flash('DPP updated successfully!', 'success')
+    return redirect(url_for('dpp_page'))
+
+@app.route('/delete-dpp/<int:id>')
+@login_required
+def delete_dpp(id):
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('DELETE FROM dpps WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+    flash('DPP deleted!', 'success')
+    return redirect(url_for('dpp_page'))
+
 if __name__ == '__main__':
     app.run(debug=True)
+

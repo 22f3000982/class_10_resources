@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}DPP – Daily Practice Problems{% endblock %}
+
+{% block content %}
+<div class="dpp-page-hero text-center">
+    <div class="dpp-page-icon"><i class="bi bi-journal-bookmark-fill"></i></div>
+    <h1 class="dpp-page-title">Daily Practice Problems</h1>
+    <p class="dpp-page-sub">Sharpen your skills with curated practice sheets</p>
+    <span class="dpp-count-badge">{{ dpps|length }} DPP{{ 's' if dpps|length != 1 else '' }}</span>
+</div>
+
+{% if is_admin %}
+<!-- Admin: Add DPP form -->
+<div class="dpp-add-card">
+    <h6 class="dpp-add-title"><i class="bi bi-plus-circle-fill"></i> Add New DPP</h6>
+    <form method="POST" action="{{ url_for('add_dpp') }}" class="dpp-add-form">
+        <input type="text" name="title" class="form-control"
+               placeholder="DPP Title  e.g. Chapter 3 – Motion" required>
+        <input type="url" name="drive_link" class="form-control"
+               placeholder="Google Drive link" required>
+        <button type="submit" class="btn btn-primary dpp-add-btn">
+            <i class="bi bi-plus-lg"></i> Add DPP
+        </button>
+    </form>
+</div>
+{% endif %}
+
+{% if dpps %}
+<div class="dpp-grid">
+    {% for dpp in dpps %}
+    <div class="dpp-card">
+        <div class="dpp-card-number">{{ loop.revindex }}</div>
+        <div class="dpp-card-body">
+            <p class="dpp-card-title">{{ dpp['title'] }}</p>
+            <small class="dpp-card-date">
+                <i class="bi bi-calendar3"></i> {{ dpp['created_at'][:10] }}
+            </small>
+        </div>
+        <div class="dpp-card-actions">
+            <a href="{{ dpp['drive_link'] }}" target="_blank" class="btn btn-sm dpp-open-btn">
+                <i class="bi bi-google"></i> Open
+            </a>
+            {% if is_admin %}
+            <button class="btn btn-sm dpp-edit-btn"
+                    data-bs-toggle="modal"
+                    data-bs-target="#editDppModal{{ dpp['id'] }}">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <a href="{{ url_for('delete_dpp', id=dpp['id']) }}"
+               class="btn btn-sm dpp-delete-btn"
+               onclick="return confirm('Delete this DPP?')">
+                <i class="bi bi-trash"></i>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if is_admin %}
+    <!-- Edit Modal -->
+    <div class="modal fade" id="editDppModal{{ dpp['id'] }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Edit DPP</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form method="POST" action="{{ url_for('edit_dpp', id=dpp['id']) }}">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Title</label>
+                            <input type="text" name="title" class="form-control"
+                                   value="{{ dpp['title'] }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Google Drive Link</label>
+                            <input type="url" name="drive_link" class="form-control"
+                                   value="{{ dpp['drive_link'] }}" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    {% endfor %}
+</div>
+{% else %}
+<div class="dpp-empty">
+    <i class="bi bi-journal-x"></i>
+    <p>No DPPs yet{% if is_admin %} — add one above!{% else %} — check back soon!{% endif %}</p>
+</div>
+{% endif %}
+
+<div class="text-center mt-4 mb-3">
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Home
+    </a>
+</div>
+{% endblock %}

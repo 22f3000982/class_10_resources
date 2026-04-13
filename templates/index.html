@@ -12,16 +12,17 @@
     <a href="{{ owner_info['telegram_link'] }}" target="_blank" class="action-btn btn-telegram">
         <i class="bi bi-telegram"></i> Telegram
     </a>
-    <a href="{{ owner_info['instagram_link'] }}" target="_blank" class="action-btn btn-instagram">
-        <i class="bi bi-instagram"></i> Instagram
-    </a>
     {% endif %}
+    <a href="{{ url_for('dpp_page') }}" class="action-btn btn-dpp">
+        <i class="bi bi-journal-bookmark-fill"></i> DPP
+    </a>
     <button onclick="shareWebsite()" class="action-btn btn-share">
         <i class="bi bi-share"></i> Share
     </button>
-    <a href="{{ owner_info['mcq_link'] if owner_info else url_for('practice_mcq') }}" target="_blank" class="action-btn btn-mcq">
+    <button class="action-btn btn-mcq btn-mcq-disabled" disabled title="Coming Soon">
         <i class="bi bi-clipboard-check"></i> Practice MCQ
-    </a>
+        <span class="coming-soon-badge">Soon</span>
+    </button>
 </div>
 
 <!-- Search Bar -->

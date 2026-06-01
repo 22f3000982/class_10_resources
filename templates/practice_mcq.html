@@ -13,45 +13,79 @@
                     <p class="lead text-secondary">Test your knowledge with multiple choice questions</p>
                 </div>
 
-                <!-- Sample MCQ Section - You can customize this -->
-                <div id="mcq-container">
-                    <div class="alert alert-info text-center">
-                        <i class="bi bi-info-circle"></i>
-                        <h5 class="mt-2">MCQ Section Coming Soon!</h5>
-                        <p class="mb-0">
-                            This section will contain practice questions for Class 10 subjects.
-                            Check back later for updates!
-                        </p>
+                {% if is_admin %}
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">
+                            <i class="bi bi-upload"></i> Upload New MCQ Quiz
+                        </h5>
+                        <form method="POST" action="{{ url_for('add_mcq') }}" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Quiz Name *</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="details" class="form-label">Details (Optional)</label>
+                                <textarea class="form-control" id="details" name="details" rows="3"
+                                          placeholder="Chapter, topic, or short instructions"></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="file" class="form-label">Upload Questions (PDF/DOC/MD/TXT/HTML) *</label>
+                                <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.md,.txt,.html,.htm" required>
+                                <small class="text-secondary">
+                                    HTML files will open as a real view, not raw code.
+                                </small>
+                            </div>
+                            <div class="d-grid">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-cloud-upload"></i> Upload Quiz
+                                </button>
+                            </div>
+                        </form>
                     </div>
+                </div>
+                {% endif %}
 
-                    <!-- Example of how MCQs could be structured -->
-                    <div class="card mb-3 d-none" id="sample-mcq">
-                        <div class="card-body">
-                            <h5 class="card-title">Question 1: Sample Question</h5>
-                            <p class="card-text">What is the capital of India?</p>
-                            
-                            
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="q1" id="q1b" value="b">
-                                <label class="form-check-label" for="q1b">New Delhi</label>
+                {% if quizzes %}
+                <div class="list-group">
+                    {% for quiz in quizzes %}
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex justify-content-between align-items-start gap-3">
+                            <div class="flex-grow-1">
+                                <h5 class="mb-1">{{ quiz['title'] }}</h5>
+                                {% if quiz['details'] %}
+                                <p class="mb-2 text-secondary">{{ quiz['details'] }}</p>
+                                {% endif %}
+                                <small class="text-secondary">
+                                    <i class="bi bi-calendar"></i> {{ quiz['created_at'][:10] }}
+                                </small>
+                                <span class="badge bg-secondary ms-2 text-uppercase">{{ quiz['file_type'] }}</span>
                             </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="q1" id="q1c" value="c">
-                                <label class="form-check-label" for="q1c">Kolkata</label>
-                            </div>
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="radio" name="q1" id="q1d" value="d">
-                                <label class="form-check-label" for="q1d">Chennai</label>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{{ url_for('view_mcq', id=quiz['id']) }}" class="btn btn-sm btn-primary" target="_blank">
+                                    <i class="bi bi-box-arrow-up-right"></i> Open
+                                </a>
+                                {% if is_admin %}
+                                <a href="{{ url_for('edit_mcq', id=quiz['id']) }}" class="btn btn-sm btn-success">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('delete_mcq', id=quiz['id']) }}" class="btn btn-sm btn-danger"
+                                   onclick="return confirm('Delete this quiz?')">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
                             </div>
                         </div>
                     </div>
-
-                    <div class="text-center mt-4 d-none" id="submit-section">
-                        <button class="btn btn-primary btn-lg" onclick="submitMCQ()">
-                            <i class="bi bi-check-circle"></i> Submit Answers
-                        </button>
-                    </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="bi bi-info-circle"></i>
+                    <h5 class="mt-2">No MCQ quizzes yet!</h5>
+                    <p class="mb-0">Check back soon for new practice sets.</p>
+                </div>
+                {% endif %}
 
                 <div class="text-center mt-4">
                     <a href="{{ url_for('index') }}" class="btn btn-secondary">
@@ -62,16 +96,4 @@
         </div>
     </div>
 </div>
-{% endblock %}
-
-{% block extra_js %}
-<script>
-function submitMCQ() {
-    // This is a placeholder function
-    // You can implement actual MCQ checking logic here
-    alert('MCQ submission functionality will be implemented soon!');
-}
-
-// You can add JavaScript to load MCQs dynamically from a database or JSON file
-</script>
 {% endblock %}

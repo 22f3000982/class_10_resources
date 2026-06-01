@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}{{ quiz['title'] }} – Practice MCQ{% endblock %}
+
+{% block extra_css %}
+<style>
+    .mcq-fullscreen {
+        height: calc(100vh - 64px);
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .mcq-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .mcq-iframe-wrap {
+        flex: 1;
+        min-height: 0;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid var(--border-color);
+        background: var(--bg-secondary);
+    }
+
+    .mcq-iframe {
+        width: 100%;
+        height: 100%;
+        border: 0;
+    }
+
+    @media (max-width: 768px) {
+        .mcq-fullscreen {
+            height: calc(100vh - 56px);
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mcq-fullscreen">
+    <div class="mcq-header">
+        <div>
+            <h3 class="mb-1">{{ quiz['title'] }}</h3>
+            {% if quiz['details'] %}
+            <p class="text-secondary mb-2">{{ quiz['details'] }}</p>
+            {% endif %}
+            <small class="text-secondary">
+                <i class="bi bi-calendar"></i> {{ quiz['created_at'][:10] }}
+            </small>
+            <span class="badge bg-secondary ms-2 text-uppercase">{{ quiz['file_type'] }}</span>
+        </div>
+        <a href="{{ url_for('practice_mcq') }}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to MCQs
+        </a>
+    </div>
+
+    <div class="mcq-iframe-wrap">
+        <iframe class="mcq-iframe" src="{{ file_url }}" title="{{ quiz['title'] }}"></iframe>
+    </div>
+</div>
+{% endblock %}

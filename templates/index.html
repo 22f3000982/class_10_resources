@@ -19,10 +19,10 @@
     <button onclick="shareWebsite()" class="action-btn btn-share">
         <i class="bi bi-share"></i> Share
     </button>
-    <button class="action-btn btn-mcq btn-mcq-disabled" disabled title="Coming Soon">
+    <a href="{{ url_for('practice_mcq') }}" class="action-btn btn-mcq btn-mcq-highlight" title="Practice MCQs">
         <i class="bi bi-clipboard-check"></i> Practice MCQ
-        <span class="coming-soon-badge">Soon</span>
-    </button>
+        <span class="coming-soon-badge">Live</span>
+    </a>
 </div>
 
 <!-- Search Bar -->

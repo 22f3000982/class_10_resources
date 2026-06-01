@@ -10,13 +10,16 @@ app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 app.config['UPLOAD_FOLDER'] = 'static/resources'
 app.config['OWNER_PHOTO_FOLDER'] = 'static/owner'
+app.config['MCQ_UPLOAD_FOLDER'] = 'static/mcq'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'zip', 'rar'}
+app.config['MCQ_ALLOWED_EXTENSIONS'] = {'pdf', 'html', 'htm', 'doc', 'docx', 'md', 'txt'}
 
 ADMIN_PASSWORD = '4129'
 
 # Ensure upload folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OWNER_PHOTO_FOLDER'], exist_ok=True)
+os.makedirs(app.config['MCQ_UPLOAD_FOLDER'], exist_ok=True)
 
 # Database initialization
 def init_db():
@@ -48,6 +51,15 @@ def init_db():
                   title TEXT NOT NULL,
                   drive_link TEXT NOT NULL,
                   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
+    # MCQ quizzes table
+    c.execute('''CREATE TABLE IF NOT EXISTS mcq_quizzes
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  title TEXT NOT NULL,
+                  details TEXT,
+                  filename TEXT NOT NULL,
+                  file_type TEXT NOT NULL,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
     
     # Insert default owner info if not exists
     c.execute('SELECT COUNT(*) FROM owner_info')
@@ -67,6 +79,9 @@ init_db()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def allowed_mcq_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['MCQ_ALLOWED_EXTENSIONS']
 
 def login_required(f):
     @wraps(f)
@@ -298,7 +313,145 @@ def about_owner():
 
 @app.route('/practice-mcq')
 def practice_mcq():
-    return render_template('practice_mcq.html')
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM mcq_quizzes ORDER BY created_at DESC')
+    quizzes = c.fetchall()
+    conn.close()
+    is_admin = 'admin' in session
+    return render_template('practice_mcq.html', quizzes=quizzes, is_admin=is_admin)
+
+@app.route('/add-mcq', methods=['POST'])
+@login_required
+def add_mcq():
+    title = request.form.get('title', '').strip()
+    details = request.form.get('details', '').strip()
+    file = request.files.get('file')
+
+    if not title:
+        flash('Quiz name is required!', 'error')
+        return redirect(url_for('practice_mcq'))
+
+    if not file or file.filename == '':
+        flash('Please upload a PDF or HTML file!', 'error')
+        return redirect(url_for('practice_mcq'))
+
+    if not allowed_mcq_file(file.filename):
+        flash('Invalid file type! Only PDF or HTML files are allowed.', 'error')
+        return redirect(url_for('practice_mcq'))
+
+    filename = secure_filename(file.filename)
+    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+    filename = f"mcq_{timestamp}_{filename}"
+    file.save(os.path.join(app.config['MCQ_UPLOAD_FOLDER'], filename))
+
+    file_type = filename.rsplit('.', 1)[1].lower()
+
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO mcq_quizzes (title, details, filename, file_type) VALUES (?, ?, ?, ?)',
+              (title, details, filename, file_type))
+    conn.commit()
+    conn.close()
+
+    flash('MCQ quiz uploaded successfully!', 'success')
+    return redirect(url_for('practice_mcq'))
+
+@app.route('/mcq/<int:id>')
+def view_mcq(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM mcq_quizzes WHERE id = ?', (id,))
+    quiz = c.fetchone()
+    conn.close()
+
+    if not quiz:
+        flash('MCQ quiz not found!', 'error')
+        return redirect(url_for('practice_mcq'))
+
+    file_url = url_for('mcq_file', filename=quiz['filename'])
+    return render_template('mcq_view.html', quiz=quiz, file_url=file_url)
+
+@app.route('/mcq-file/<path:filename>')
+def mcq_file(filename):
+    return send_from_directory(app.config['MCQ_UPLOAD_FOLDER'], filename)
+
+@app.route('/edit-mcq/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_mcq(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM mcq_quizzes WHERE id = ?', (id,))
+    quiz = c.fetchone()
+
+    if not quiz:
+        conn.close()
+        flash('MCQ quiz not found!', 'error')
+        return redirect(url_for('practice_mcq'))
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        details = request.form.get('details', '').strip()
+        file = request.files.get('file')
+
+        if not title:
+            flash('Quiz name is required!', 'error')
+            return redirect(url_for('edit_mcq', id=id))
+
+        filename = quiz['filename']
+        file_type = quiz['file_type']
+
+        if file and file.filename != '':
+            if not allowed_mcq_file(file.filename):
+                flash('Invalid file type! Only PDF, DOC, DOCX, TXT, MD, or HTML files are allowed.', 'error')
+                return redirect(url_for('edit_mcq', id=id))
+
+            new_filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            new_filename = f"mcq_{timestamp}_{new_filename}"
+            file.save(os.path.join(app.config['MCQ_UPLOAD_FOLDER'], new_filename))
+
+            old_path = os.path.join(app.config['MCQ_UPLOAD_FOLDER'], filename)
+            if os.path.exists(old_path):
+                os.remove(old_path)
+
+            filename = new_filename
+            file_type = new_filename.rsplit('.', 1)[1].lower()
+
+        c.execute('UPDATE mcq_quizzes SET title = ?, details = ?, filename = ?, file_type = ? WHERE id = ?',
+                  (title, details, filename, file_type, id))
+        conn.commit()
+        conn.close()
+
+        flash('MCQ quiz updated successfully!', 'success')
+        return redirect(url_for('practice_mcq'))
+
+    conn.close()
+    return render_template('edit_mcq.html', quiz=quiz)
+
+@app.route('/delete-mcq/<int:id>')
+@login_required
+def delete_mcq(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT filename FROM mcq_quizzes WHERE id = ?', (id,))
+    quiz = c.fetchone()
+
+    if quiz and quiz['filename']:
+        file_path = os.path.join(app.config['MCQ_UPLOAD_FOLDER'], quiz['filename'])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    c.execute('DELETE FROM mcq_quizzes WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    flash('MCQ quiz deleted!', 'success')
+    return redirect(url_for('practice_mcq'))
 
 # ── DPP routes ────────────────────────────────────────────────────────────────
 
@@ -357,5 +510,5 @@ def delete_dpp(id):
     return redirect(url_for('dpp_page'))
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)
 

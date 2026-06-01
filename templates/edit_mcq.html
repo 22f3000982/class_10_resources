@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Edit MCQ – {{ quiz['title'] }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-body p-4">
+                <h2 class="text-center mb-4">
+                    <i class="bi bi-pencil text-success"></i> Edit MCQ Quiz
+                </h2>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Quiz Name *</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ quiz['title'] }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="details" class="form-label">Details (Optional)</label>
+                        <textarea class="form-control" id="details" name="details" rows="3">{{ quiz['details'] or '' }}</textarea>
+                    </div>
+                    <div class="alert alert-info">
+                        <i class="bi bi-paperclip"></i>
+                        Current file: <strong>{{ quiz['filename'] }}</strong>
+                    </div>
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Replace File (Optional)</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".pdf,.doc,.docx,.md,.txt,.html,.htm">
+                        <small class="text-secondary">
+                            Leave empty to keep the existing file.
+                        </small>
+                    </div>
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Save Changes
+                        </button>
+                        <a href="{{ url_for('practice_mcq') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

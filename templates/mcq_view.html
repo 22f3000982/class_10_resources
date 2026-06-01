@@ -4,8 +4,17 @@
 
 {% block extra_css %}
 <style>
+    .navbar {
+        display: none;
+    }
+
+    .container {
+        margin-top: 0 !important;
+        padding-top: 0.75rem;
+    }
+
     .mcq-fullscreen {
-        height: calc(100vh - 64px);
+        height: calc(100vh - 16px);
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
@@ -36,7 +45,7 @@
 
     @media (max-width: 768px) {
         .mcq-fullscreen {
-            height: calc(100vh - 56px);
+            height: calc(100vh - 16px);
         }
     }
 </style>

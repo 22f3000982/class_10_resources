@@ -4,6 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Electricity Class 10 - Advanced Quiz Application</title>
+    
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
     <style>
         :root {
             --bg-primary: #f4f6f9;
@@ -245,28 +261,32 @@
 
         .action-container {
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
             margin-bottom: 1.5rem;
         }
 
-        .btn-primary {
-            background-color: var(--primary);
-            color: #ffffff;
-            border: none;
+        .btn-primary, .btn-secondary {
             padding: 0.85rem 2rem;
             font-size: 1.05rem;
             font-weight: 600;
             border-radius: var(--radius);
             cursor: pointer;
             transition: var(--transition);
-            box-shadow: 0 4px 6px rgba(74, 81, 222, 0.2);
             width: 100%;
         }
 
         @media (min-width: 600px) {
-            .btn-primary {
+            .btn-primary, .btn-secondary {
                 width: auto;
             }
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: #ffffff;
+            border: none;
+            box-shadow: 0 4px 6px rgba(74, 81, 222, 0.2);
         }
 
         .btn-primary:hover:not(:disabled) {
@@ -281,13 +301,32 @@
             box-shadow: none;
         }
 
+        .btn-secondary {
+            background-color: transparent;
+            color: var(--text-main);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background-color: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         .explanation-box {
-            margin-top: 0.5rem;
+            margin-top: 1rem;
             padding: 1.5rem;
             border-radius: var(--radius);
             border: 1px solid var(--border-color);
             background-color: var(--bg-primary);
             display: none;
+            height: auto;
+            overflow: visible;
             animation: fadeIn 0.4s ease;
         }
 
@@ -314,7 +353,8 @@
 
         .opt-exp-line {
             font-size: 0.95rem;
-            line-height: 1.4;
+            line-height: 1.5;
+            margin-bottom: 0.5rem;
         }
 
         .learning-section {
@@ -448,11 +488,11 @@
         }
     </style>
 </head>
-<body>
+<body class="tex2jax_process">
 
     <canvas id="canvas"></canvas>
 
-    <header>
+    <header class="tex2jax_ignore">
         <div class="brand-title">💡 EdTechPro : Electricity Quiz</div>
         <div class="header-actions">
             <button class="btn-icon" id="theme-toggle" title="Toggle Dark/Light Mode" aria-label="Toggle Theme">🌓</button>
@@ -462,7 +502,7 @@
 
     <main class="main-container">
         <div id="quiz-arena" class="quiz-card">
-            <div class="quiz-header">
+            <div class="quiz-header tex2jax_ignore">
                 <span class="meta-tag" id="topic-tag">Topic</span>
                 <div class="top-stats">
                     <span id="question-counter">Question 1 of 40</span>
@@ -471,7 +511,7 @@
                 </div>
             </div>
 
-            <div class="progress-container">
+            <div class="progress-container tex2jax_ignore">
                 <div class="progress-bar" id="ui-progress"></div>
             </div>
 
@@ -479,12 +519,13 @@
 
             <div class="options-list" id="ui-options"></div>
 
-            <div class="action-container">
-                <button class="btn-primary" id="btn-next" disabled>Next Question &rarr;</button>
+            <div class="action-container tex2jax_ignore">
+                <button class="btn-secondary" id="btn-prev" disabled>&larr; Previous</button>
+                <button class="btn-primary" id="btn-next" disabled>Select an Option</button>
             </div>
 
             <div class="explanation-box" id="ui-explanation">
-                <div class="explanation-title">Detailed Analytics & Explanations</div>
+                <div class="explanation-title tex2jax_ignore">Detailed Analytics & Explanations</div>
                 <div class="option-explanations" id="ui-opt-explanations"></div>
                 <div class="learning-section"><strong>Concept Tested:</strong> <span id="ui-concept"></span></div>
                 <div class="learning-section"><strong>Quick Revision:</strong> <span id="ui-revision"></span></div>
@@ -492,7 +533,7 @@
             </div>
         </div>
 
-        <div class="results-container" id="results-board">
+        <div class="results-container tex2jax_ignore" id="results-board">
             <div class="results-header">
                 <h2>🎉 Quiz Completed!</h2>
                 <div class="grade-badge" id="res-grade">A+</div>
@@ -658,7 +699,7 @@
                     "Incorrect. This value scales double the true real total calculated physical metric matrix.",
                     "Incorrect. Double check your multiplication steps; this calculation overshot significantly."
                 ],
-                concept: "Joule's law thermal conversion formulas ($H = I^2 R t$).",
+                concept: "Campatibility of thermal conversion formulas ($H = I^2 R t$).",
                 revision: "Thermal heat generation tracks with the square of structural input flow velocity metrics.",
                 examTip: "Remember to square the current value first before completing the rest of the multiplication steps."
             },
@@ -729,7 +770,7 @@
             },
             {
                 topic: "Measuring Instruments",
-                question: "[HOTS] A voltmeter mistakenly connected in series inside a circuit would:",
+                question: "[Measuring Instruments - HOTS] A voltmeter mistakenly connected in series inside a circuit would:",
                 options: [
                     "Increase current flow significantly",
                     "Decrease current drastically",
@@ -864,7 +905,7 @@
             },
             {
                 topic: "Resistance & Factors",
-                question: "[HOTS] If all dimensions of a wire are doubled, its resistance becomes:",
+                question: "[Resistance & Factors - HOTS] If all dimensions of a wire are doubled, its resistance becomes:",
                 options: ["R", "2R", "R/2", "4R"],
                 correct: 2,
                 explanations: [
@@ -894,7 +935,7 @@
             },
             {
                 topic: "Electricity Billing",
-                question: "[Bill HOTS] A family uses a 1 kW heater for 2 h/day and a 100 W fan for 10 h/day. Daily consumption is:",
+                question: "[Electricity Billing - HOTS] A family uses a 1 kW heater for 2 h/day and a 100 W fan for 10 h/day. Daily consumption is:",
                 options: ["2.5 kWh", "3 kWh", "4 kWh", "5 kWh"],
                 correct: 1,
                 explanations: [
@@ -935,8 +976,7 @@
                 explanations: [
                     "Incorrect. This value is missing some zero multipliers from the unit conversion.",
                     "Incorrect. This is an incorrect exponent value for Joule conversions.",
-                    "Correct! $1 \\text{ kWh} = 1000 \\text{ W} \\times 3600 \\text{ s} = 3,\\!600,\\!000 \\text{ Joules} = 3.6 \\times 10^6 \\text{ J}$.",
-                    "Incorrect. This exponent is one order of magnitude too high."
+                    "Correct! $1 \\text{ kWh} = 1000 \\text{ W} \\times 3600 \\text{ s} = 3,\\!600,\\!000 \\text{ Joules} = 3.6 \\times 10^6 \\text{ J}$."
                 ],
                 concept: "Converting commercial energy units (kilowatt-hours) to standard SI units (Joules).",
                 revision: "Multiply Watts by seconds to convert power and time definitions directly into Joules.",
@@ -999,7 +1039,7 @@
             },
             {
                 topic: "Ohm's Law Application",
-                question: "[HOTS] A student plots a V-I graph and obtains a curved line. This indicates:",
+                question: "[Ohm's Law Application - HOTS] A student plots a V-I graph and obtains a curved line. This indicates:",
                 options: [
                     "An ohmic conductor",
                     "A non-ohmic conductor",
@@ -1045,8 +1085,7 @@
                 explanations: [
                     "Incorrect. Check your multiplication math here.",
                     "Incorrect. This value doesn't match the daily consumption multiplied by 30 days.",
-                    "Correct! Total monthly energy $= 3 \\text{ kWh/day} \\times 30 \\text{ days} = 90 \\text{ kWh} = 90 \\text{ units}$.",
-                    "Incorrect. This value is too high for a 30-day month."
+                    "Correct! Total monthly energy $= 3 \\text{ kWh/day} \\times 30 \\text{ days} = 90 \\text{ kWh} = 90 \\text{ units}$."
                 ],
                 concept: "Scaling daily energy consumption to monthly utility usage metrics.",
                 revision: "Multiply daily unit consumption by the number of days in the billing period.",
@@ -1074,9 +1113,7 @@
                 correct: 1,
                 explanations: [
                     "Incorrect. This happens if you use an incorrect hour conversion for the 45-minute runtime.",
-                    "Correct! Daily runtime $= 45/60 = 0.75 \\text{ hours}$. Daily energy $= 2 \\text{ kW} \\times 0.75 \\text{ h} = 1.5 \\text{ kWh}$. Monthly energy (30 days) $= 1.5 \\times 30 = 45 \\text{ units}$.",
-                    "Incorrect. This value assumes the geyser runs for a full hour every day.",
-                    "Incorrect. Double check your time conversion and multiplication steps."
+                    "Correct! Daily runtime $= 45/60 = 0.75 \\text{ hours}$. Daily energy $= 2 \\text{ kW} \\times 0.75 \\text{ h} = 1.5 \\text{ kWh}$. Monthly energy (30 days) $= 1.5 \\times 30 = 45 \\text{ units}$."
                 ],
                 concept: "Converting runtimes from minutes to hours for energy billing calculations.",
                 revision: "Always divide minutes by 60 to convert them to hours before calculating energy usage.",
@@ -1125,8 +1162,7 @@
                 explanations: [
                     "Incorrect. This looks like an incorrect multiplication or calculation step.",
                     "Incorrect. Check your math; this value is too low.",
-                    "Correct! Power $P = V \\times I = 12 \\text{ V} \\times 4 \\text{ A} = 48 \\text{ W}$.",
-                    "Incorrect. This value overshoots the calculated power total."
+                    "Correct! Power $P = V \\times I = 12 \\text{ V} \\times 4 \\text{ A} = 48 \\text{ W}$."
                 ],
                 concept: "Calculating power dissipation from circuit voltage and current measurements.",
                 revision: "Power is the product of voltage and current ($P = V \\cdot I$).",
@@ -1140,8 +1176,7 @@
                 explanations: [
                     "Incorrect. This value uses an incorrect power metric in the calculation.",
                     "Incorrect. Check your multiplication steps.",
-                    "Correct! Energy $E = \\text{Power} \\times \\text{Time} = 48 \\text{ W} \\times 10 \\text{ s} = 480 \\text{ Joules}$.",
-                    "Incorrect. This value is too high for the given power and time parameters."
+                    "Correct! Energy $E = \\text{Power} \\times \\text{Time} = 48 \\text{ W} \\times 10 \\text{ s} = 480 \\text{ Joules}$."
                 ],
                 concept: "Calculating energy consumption from power and time values in standard SI units.",
                 revision: "Energy in Joules is equal to power in Watts multiplied by time in seconds.",
@@ -1149,7 +1184,7 @@
             },
             {
                 topic: "Electric Power",
-                question: "[HOTS] A bulb rated 100 W–220 V is operated at 110 V. Its power will:",
+                question: "[Electric Power - HOTS] A bulb rated 100 W–220 V is operated at 110 V. Its power will:",
                 options: ["Increase", "Remain same", "Decrease to 25 W", "Become zero"],
                 correct: 2,
                 explanations: [
@@ -1184,7 +1219,7 @@
             },
             {
                 topic: "Ohm's Law Application",
-                question: "[HOTS] A battery provides constant voltage. If circuit resistance is halved, current becomes:",
+                question: "[Ohm's Law Application - HOTS] A battery provides constant voltage. If circuit resistance is halved, current becomes:",
                 options: ["Half", "Double", "Four times", "Unchanged"],
                 correct: 1,
                 explanations: [
@@ -1199,7 +1234,7 @@
             },
             {
                 topic: "Measuring Instruments",
-                question: "[HOTS – Multi Concept] Which statement is completely correct?",
+                question: "[Measuring Instruments - HOTS – Multi Concept] Which statement is completely correct?",
                 options: [
                     "Ammeter has high resistance and is connected in parallel",
                     "Voltmeter has low resistance and is connected in series",
@@ -1234,11 +1269,12 @@
         const uiConcept = document.getElementById('ui-concept');
         const uiRevision = document.getElementById('ui-revision');
         const uiExamTip = document.getElementById('ui-exam-tip');
+        const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
         const topStatAccuracy = document.getElementById('top-stat-accuracy');
         const topStatScore = document.getElementById('top-stat-score');
         const quizArena = document.getElementById('quiz-arena');
-        const resultsBoard = document.getElementById('results-board');
+        const StarkResultsBoard = document.getElementById('results-board');
 
         // Theme Management Engine
         const themeToggle = document.getElementById('theme-toggle');
@@ -1276,6 +1312,9 @@
 
             uiOptions.innerHTML = '';
             uiExplanation.style.display = 'none';
+
+            // Control state of previous button
+            btnPrev.disabled = currentIdx === 0;
 
             const hasAnswered = userAnswers[currentIdx] !== undefined;
 
@@ -1327,6 +1366,11 @@
                 btnNext.disabled = true;
                 btnNext.innerText = "Select an Option";
             }
+
+            // Request MathJax to re-render mathematical structures smoothly
+            if (window.MathJax && typeof window.MathJax.typesetPromise === "function") {
+                window.MathJax.typesetPromise();
+            }
         }
 
         function handleSelection(selectedIdx) {
@@ -1363,6 +1407,13 @@
             }
         });
 
+        btnPrev.addEventListener('click', () => {
+            if (currentIdx > 0) {
+                currentIdx--;
+                renderQuestion();
+            }
+        });
+
         // Reset Quiz Hook Interface
         document.getElementById('reset-quiz').addEventListener('click', () => {
             if (confirm("Are you sure you want to reset all your answers and progress?")) {
@@ -1370,7 +1421,7 @@
                 localStorage.removeItem('electricity_quiz_answers');
                 currentIdx = 0;
                 quizArena.style.display = 'block';
-                resultsBoard.style.display = 'none';
+                StarkResultsBoard.style.display = 'none';
                 initApp();
             }
         });
@@ -1380,14 +1431,14 @@
             localStorage.removeItem('electricity_quiz_answers');
             currentIdx = 0;
             quizArena.style.display = 'block';
-            resultsBoard.style.display = 'none';
+            StarkResultsBoard.style.display = 'none';
             initApp();
         });
 
         // Metrics Calculation Engine
         function displayFinalResults() {
             quizArena.style.display = 'none';
-            resultsBoard.style.display = 'block';
+            StarkResultsBoard.style.display = 'block';
 
             let correctCount = 0;
             const topicStats = {};

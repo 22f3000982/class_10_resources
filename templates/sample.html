@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Magical Birthday ✨</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0a0a1a;
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.8);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            color: white;
+        }
+
+        /* Scene Container */
+        .scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease-in-out;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .scene.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Helper Classes */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 30px;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef);
+            color: #333;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 154, 158, 0.4);
+            transition: transform 0.2s;
+            margin-top: 20px;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        /* Scene 0: Start Screen (To enable audio) */
+        #scene-0 { background: black; z-index: 100; }
+        
+        /* Scene 1: Mysterious Beginning */
+        #scene-1 { background: radial-gradient(circle at center, #1a1a3a 0%, #000000 100%); }
+        .typewriter { font-size: 1.5rem; font-weight: 300; line-height: 1.8; min-height: 100px; text-shadow: var(--text-glow); }
+
+        /* Scene 2: Balloons */
+        #scene-2 { background: linear-gradient(to bottom, #2b5876, #4e4376); }
+        .balloon-container { position: relative; width: 100%; height: 60vh; }
+        .balloon {
+            position: absolute;
+            width: 80px; height: 100px;
+            background: radial-gradient(circle at 30% 30%, #ff9a9e, #ff6a88);
+            border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%;
+            cursor: pointer;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: inset -5px -5px 20px rgba(0,0,0,0.2);
+            animation: float-up 6s linear infinite;
+        }
+        .balloon::after {
+            content: ''; position: absolute; bottom: -15px; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 30px; background: rgba(255,255,255,0.5);
+        }
+        .balloon.popped {
+            background: transparent !important; box-shadow: none !important; animation: none !important;
+            width: auto; height: auto; font-size: 1rem; color: white; text-shadow: 0 0 5px #fff;
+        }
+        .balloon.popped::after { display: none; }
+        @keyframes float-up {
+            0% { transform: translateY(100vh) rotate(0deg); }
+            100% { transform: translateY(-20vh) rotate(15deg); }
+        }
+
+        /* Scene 3: Gift */
+        #scene-3 { background: radial-gradient(circle, #4a192c, #000); }
+        .gift-box { font-size: 100px; cursor: pointer; transition: transform 0.3s; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1) rotate(5deg); } }
+
+        /* Scene 4: Cake */
+        #scene-4 { background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%); color: #333; }
+        .cake { font-size: 120px; position: relative; margin-bottom: 20px; }
+        .candles { display: flex; justify-content: center; gap: 10px; position: absolute; top: -30px; left: 0; width: 100%; }
+        .candle { font-size: 40px; cursor: pointer; transition: opacity 0.5s; }
+        .candle.blown { opacity: 0; pointer-events: none; }
+
+        /* Scene 5: Storybook */
+        #scene-5 { background: #1a1a1a; perspective: 1000px; }
+        .book { width: 300px; height: 400px; position: relative; transform-style: preserve-3d; }
+        .page {
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            background: #fff; color: #333; border-radius: 5px 15px 15px 5px;
+            padding: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+            transform-origin: left center; transition: transform 1s ease-in-out;
+            box-shadow: inset 5px 0 20px rgba(0,0,0,0.1), 5px 5px 15px rgba(0,0,0,0.3);
+            font-size: 1.2rem; cursor: pointer; backface-visibility: hidden;
+        }
+        .page.flipped { transform: rotateY(-180deg); }
+        
+        /* Scene 6: Constellation */
+        #scene-6 { background: #020111; }
+        .stars { position: absolute; width: 100%; height: 100%; background: transparent; }
+        .constellation-text { font-family: 'Caveat', cursive; font-size: 3rem; color: #fff; text-shadow: 0 0 20px #fff, 0 0 30px #a2c2e1; opacity: 0; transition: opacity 3s; }
+
+        /* Scene 7: Letter */
+        #scene-7 { background: linear-gradient(to bottom, #111, #333); }
+        .envelope { font-size: 100px; cursor: pointer; transition: transform 0.5s; z-index: 10; position: relative; }
+        .letter {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            background: #fdf8e3; color: #333; padding: 40px 20px; width: 90%; max-width: 400px;
+            border-radius: 10px; font-family: 'Caveat', cursive; font-size: 1.5rem;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 20; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .letter.open { transform: translate(-50%, -50%) scale(1); }
+
+        /* Scene 8: Question */
+        #scene-8 { background: radial-gradient(circle, #ffb6c1, #a2c2e1); color: #333; }
+        .question-box { text-align: center; }
+        .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 30px; position: relative; height: 100px;}
+        #btn-yes { background: #4ade80; color: white; z-index: 5; }
+        #btn-no { background: #f87171; color: white; position: absolute; right: 0; transition: top 0.2s, left 0.2s, transform 0.2s; }
+        .funny-text { position: absolute; top: -30px; width: 100%; font-size: 0.9rem; color: #e11d48; font-weight: bold; opacity: 0; transition: opacity 0.3s; pointer-events: none;}
+
+        /* Scene 9: Finale */
+        #scene-9 { background: #000; }
+        .finale-text { opacity: 0; transform: scale(0.5); transition: all 2s ease; }
+        .finale-text h1 { font-size: 3.5rem; background: -webkit-linear-gradient(45deg, #ff9a9e, #fecfef); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px;}
+        .finale-text h2 { font-size: 2rem; color: #fff; margin-bottom: 10px; font-weight: 300;}
+        .finale-text h3 { font-size: 1.5rem; color: #a2c2e1; font-family: 'Caveat', cursive;}
+        .finale-text.show { opacity: 1; transform: scale(1); }
+
+    </style>
+</head>
+<body>
+
+    <audio id="bgMusic" loop>
+        <source src="https://assets.mixkit.co/music/preview/mixkit-beautiful-dream-493.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="scene-0" class="scene active">
+        <h2 style="margin-bottom: 20px;">A magical story awaits...</h2>
+        <button class="btn" id="start-btn">✨ Open Book ✨</button>
+    </div>
+
+    <div id="scene-1" class="scene">
+        <div class="typewriter" id="typewriter-text"></div>
+    </div>
+
+    <div id="scene-2" class="scene">
+        <h2>Pop the balloons! 🎈</h2>
+        <div class="balloon-container" id="balloon-area"></div>
+        <button class="btn" id="next-scene-2" style="display:none; position: absolute; bottom: 40px;">Continue ✨</button>
+    </div>
+
+    <div id="scene-3" class="scene">
+        <h2>A surprise is waiting inside...</h2>
+        <div class="gift-box" id="gift">🎁</div>
+        <button class="btn" id="open-gift">Open The Gift</button>
+    </div>
+
+    <div id="scene-4" class="scene">
+        <h2>Close your eyes... Make a wish...<br>Then tap to blow out the candles.</h2>
+        <div class="cake">
+            🎂
+            <div class="candles">
+                <div class="candle">🕯️</div>
+                <div class="candle">🕯️</div>
+                <div class="candle">🕯️</div>
+            </div>
+        </div>
+        <p id="wish-msg" style="opacity: 0; font-size: 1.2rem; font-weight: bold; margin-top: 20px; transition: opacity 1s;">Wish successfully sent to the universe 💫</p>
+    </div>
+
+    <div id="scene-5" class="scene">
+        <h2 style="margin-bottom: 20px;">Tap to turn the page 📖</h2>
+        <div class="book" id="storybook">
+            <div class="page" style="z-index: 5;">"Thank you for being YOU. ✨"</div>
+            <div class="page" style="z-index: 4;">"Thank you for every crazy moment. 😂"</div>
+            <div class="page" style="z-index: 3;">"Thank you for every laugh. 🌸"</div>
+            <div class="page" style="z-index: 2;">"I never knew we'd create so many memories. 📸"</div>
+            <div class="page" style="z-index: 1;">"Remember when we first became friends? 💖"</div>
+        </div>
+    </div>
+
+    <div id="scene-6" class="scene">
+        <p style="font-size: 1.2rem; margin-bottom: 40px; font-weight: 300;">"Some friendships are written in the stars."</p>
+        <div class="constellation-text" id="constellation">BEST FRIEND ❤️</div>
+    </div>
+
+    <div id="scene-7" class="scene">
+        <h2>You have one unread letter 💌</h2>
+        <div class="envelope" id="envelope">✉️</div>
+        <div class="letter" id="letter">
+            Dear Bestie,<br><br>
+            No matter where life takes us, I hope you always remember how important you are.<br>
+            Thank you for every smile, every memory, and every moment.<br>
+            I genuinely wish happiness, success, and endless laughter for you.<br>
+            You deserve the world.<br><br>
+            Happy Birthday ❤️
+            <button class="btn" id="close-letter" style="display:block; margin: 20px auto 0; font-family:'Poppins'; font-size: 1rem; padding: 8px 20px;">Close</button>
+        </div>
+    </div>
+
+    <div id="scene-8" class="scene">
+        <div class="question-box glass">
+            <h2>One important question...</h2>
+            <h3 style="margin: 15px 0;">Will you stay my best friend forever? ❤️</h3>
+            <div class="btn-group">
+                <div class="funny-text" id="funny-msg">Nice try 😂</div>
+                <button class="btn" id="btn-yes">💖 Absolutely</button>
+                <button class="btn" id="btn-no">🙈 Maybe Not</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="scene-9" class="scene">
+        <div class="finale-text" id="finale-content">
+            <h1>HAPPY BIRTHDAY BESTIE</h1>
+            <h2>10 October</h2>
+            <h3>Best Friends Forever ❤️</h3>
+        </div>
+    </div>
+
+    <script>
+        // --- Navigation Logic ---
+        function switchScene(fromId, toId) {
+            document.getElementById(`scene-${fromId}`).classList.remove('active');
+            setTimeout(() => {
+                document.getElementById(`scene-${toId}`).classList.add('active');
+            }, 1500); // 1.5s fade transition
+        }
+
+        // --- Audio & Start Logic ---
+        const bgMusic = document.getElementById('bgMusic');
+        
+        // Music plays when the user clicks the start button
+        document.getElementById('start-btn').addEventListener('click', () => {
+            bgMusic.volume = 0.5; // Sets volume to 50%
+            bgMusic.play().catch(e => console.log("Audio play prevented by browser settings:", e));
+            switchScene(0, 1);
+            startScene1();
+        });
+
+        // --- Scene 1: Typewriter ---
+        const messages = [
+            "Hey Bestie...",
+            "I know today is not just another day...",
+            "It's 10 October... 🌸",
+            "And someone very special was born today."
+        ];
+        async function startScene1() {
+            const twText = document.getElementById('typewriter-text');
+            for (let i = 0; i < messages.length; i++) {
+                twText.innerHTML = "";
+                let msg = messages[i];
+                for (let j = 0; j < msg.length; j++) {
+                    twText.innerHTML += msg.charAt(j);
+                    await new Promise(r => setTimeout(r, 80));
+                }
+                await new Promise(r => setTimeout(r, 1500)); // Pause between lines
+            }
+            switchScene(1, 2);
+            startScene2();
+        }
+
+        // --- Scene 2: Balloons ---
+        const balloonMsgs = ["Thank you for always being there 💖", "You make every day better 🌸", "Life is more fun with you ✨", "You're my favorite person 🎁"];
+        let poppedCount = 0;
+        function startScene2() {
+            const area = document.getElementById('balloon-area');
+            for (let i = 0; i < 6; i++) {
+                let b = document.createElement('div');
+                b.className = 'balloon';
+                b.style.left = Math.random() * 80 + '%';
+                b.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                b.style.animationDelay = (Math.random() * 2) + 's';
+                
+                b.addEventListener('click', function() {
+                    if (this.classList.contains('popped')) return;
+                    this.classList.add('popped');
+                    this.innerHTML = balloonMsgs[Math.floor(Math.random() * balloonMsgs.length)];
+                    confetti({ particleCount: 30, spread: 50, origin: { x: this.getBoundingClientRect().left / window.innerWidth, y: this.getBoundingClientRect().top / window.innerHeight } });
+                    poppedCount++;
+                    if (poppedCount >= 3) {
+                        document.getElementById('next-scene-2').style.display = 'block';
+                    }
+                });
+                area.appendChild(b);
+            }
+        }
+        document.getElementById('next-scene-2').addEventListener('click', () => { switchScene(2, 3); });
+
+        // --- Scene 3: Gift ---
+        document.getElementById('open-gift').addEventListener('click', () => {
+            const gift = document.getElementById('gift');
+            gift.style.transform = 'scale(1.5)';
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+            setTimeout(() => { switchScene(3, 4); }, 1500);
+        });
+
+        // --- Scene 4: Cake ---
+        const candles = document.querySelectorAll('.candle');
+        let blownOut = 0;
+        candles.forEach(candle => {
+            candle.addEventListener('click', function() {
+                if(this.classList.contains('blown')) return;
+                this.classList.add('blown');
+                blownOut++;
+                if (blownOut === candles.length) {
+                    confetti({ particleCount: 100, spread: 70, colors: ['#fbc2eb', '#a6c1ee', '#ffffff'] });
+                    document.getElementById('wish-msg').style.opacity = '1';
+                    setTimeout(() => { switchScene(4, 5); }, 3000);
+                }
+            });
+        });
+
+        // --- Scene 5: Storybook ---
+        const pages = Array.from(document.querySelectorAll('.page')).reverse();
+        let currentPage = 0;
+        document.getElementById('storybook').addEventListener('click', () => {
+            if (currentPage < pages.length) {
+                pages[currentPage].classList.add('flipped');
+                currentPage++;
+            }
+            if (currentPage === pages.length) {
+                setTimeout(() => { switchScene(5, 6); startScene6(); }, 1500);
+            }
+        });
+
+        // --- Scene 6: Constellation ---
+        function startScene6() {
+            setTimeout(() => {
+                document.getElementById('constellation').style.opacity = '1';
+                setTimeout(() => { switchScene(6, 7); }, 4000);
+            }, 1000);
+        }
+
+        // --- Scene 7: Letter ---
+        document.getElementById('envelope').addEventListener('click', () => {
+            document.getElementById('letter').classList.add('open');
+        });
+        document.getElementById('close-letter').addEventListener('click', () => {
+            document.getElementById('letter').classList.remove('open');
+            setTimeout(() => { switchScene(7, 8); }, 800);
+        });
+
+        // --- Scene 8: Runaway Button ---
+        const btnNo = document.getElementById('btn-no');
+        const funnyMsgs = ["Nice try 😂", "Contract already signed ❤️", "Escape not possible 🚫", "Lifetime subscription active!"];
+        const funnyText = document.getElementById('funny-msg');
+        
+        const moveBtn = (e) => {
+            e.preventDefault();
+            const x = Math.random() * 150 - 75; // random pos
+            const y = Math.random() * 100 - 50;
+            btnNo.style.transform = `translate(${x}px, ${y}px) scale(0.8)`;
+            
+            funnyText.innerText = funnyMsgs[Math.floor(Math.random() * funnyMsgs.length)];
+            funnyText.style.opacity = '1';
+            setTimeout(() => { funnyText.style.opacity = '0'; }, 1000);
+        };
+        btnNo.addEventListener('mouseover', moveBtn);
+        btnNo.addEventListener('touchstart', moveBtn);
+
+        // --- Scene 9: Finale ---
+        document.getElementById('btn-yes').addEventListener('click', () => {
+            switchScene(8, 9);
+            setTimeout(startFinale, 1500);
+        });
+
+        function startFinale() {
+            document.getElementById('finale-content').classList.add('show');
+            
+            // Continuous fireworks
+            var duration = 15 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) { return clearInterval(interval); }
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: Math.random(), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>

@@ -9,6 +9,7 @@ app = Flask(__name__)
 app.secret_key = 'your-secret-key-change-this-in-production'
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5MB max file size
 app.config['UPLOAD_FOLDER'] = 'static/resources'
+app.config['NOTES_2026_FOLDER'] = 'static/notes_2026'
 app.config['OWNER_PHOTO_FOLDER'] = 'static/owner'
 app.config['MCQ_UPLOAD_FOLDER'] = 'static/mcq'
 app.config['ALLOWED_EXTENSIONS'] = {'pdf', 'doc', 'docx', 'txt', 'jpg', 'jpeg', 'png', 'zip', 'rar'}
@@ -18,6 +19,7 @@ ADMIN_PASSWORD = '4129'
 
 # Ensure upload folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['NOTES_2026_FOLDER'], exist_ok=True)
 os.makedirs(app.config['OWNER_PHOTO_FOLDER'], exist_ok=True)
 os.makedirs(app.config['MCQ_UPLOAD_FOLDER'], exist_ok=True)
 
@@ -28,6 +30,14 @@ def init_db():
     
     # Resources table
     c.execute('''CREATE TABLE IF NOT EXISTS resources
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  name TEXT NOT NULL,
+                  link TEXT,
+                  filename TEXT,
+                  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
+
+    # 2026 notes table
+    c.execute('''CREATE TABLE IF NOT EXISTS notes_2026
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                   name TEXT NOT NULL,
                   link TEXT,
@@ -79,6 +89,9 @@ init_db()
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
+
+def allowed_note_file(filename):
+    return allowed_file(filename)
 
 def allowed_mcq_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['MCQ_ALLOWED_EXTENSIONS']
@@ -156,6 +169,7 @@ def add_resource():
         name = request.form.get('name')
         link = request.form.get('link')
         file = request.files.get('file')
+        return_to = request.form.get('return_to', 'index')
         
         filename = None
         if file and file.filename != '':
@@ -177,9 +191,43 @@ def add_resource():
         conn.close()
         
         flash('Resource added successfully!', 'success')
+        if return_to == 'notes_2026':
+            return redirect('/notes-2026')
         return redirect(url_for('index'))
     
     return render_template('add_resource.html')
+
+@app.route('/add-note-2026', methods=['POST'])
+@login_required
+def add_note_2026():
+    name = request.form.get('name', '').strip()
+    link = request.form.get('link', '').strip()
+    file = request.files.get('file')
+
+    if not name:
+        flash('Note title is required!', 'error')
+        return redirect(url_for('notes_2026'))
+
+    filename = None
+    if file and file.filename != '':
+        if allowed_note_file(file.filename):
+            filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            filename = f"note_{timestamp}_{filename}"
+            file.save(os.path.join(app.config['NOTES_2026_FOLDER'], filename))
+        else:
+            flash('Invalid file type!', 'error')
+            return redirect(url_for('notes_2026'))
+
+    conn = sqlite3.connect('database.db')
+    c = conn.cursor()
+    c.execute('INSERT INTO notes_2026 (name, link, filename) VALUES (?, ?, ?)',
+              (name, link, filename))
+    conn.commit()
+    conn.close()
+
+    flash('2026 note added successfully!', 'success')
+    return redirect(url_for('notes_2026'))
 
 @app.route('/edit-resource/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -232,6 +280,100 @@ def delete_resource(id):
     
     flash('Resource deleted successfully!', 'success')
     return redirect(url_for('index'))
+
+@app.route('/view-note-2026/<int:id>')
+def view_note_2026(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM notes_2026 WHERE id = ?', (id,))
+    note = c.fetchone()
+    conn.close()
+
+    if not note:
+        flash('Note not found!', 'error')
+        return redirect(url_for('notes_2026'))
+
+    if note['filename']:
+        return send_from_directory(app.config['NOTES_2026_FOLDER'], note['filename'])
+    if note['link']:
+        return redirect(note['link'])
+
+    flash('No file or link available for this note!', 'error')
+    return redirect(url_for('notes_2026'))
+
+@app.route('/edit-note-2026/<int:id>', methods=['GET', 'POST'])
+@login_required
+def edit_note_2026(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT * FROM notes_2026 WHERE id = ?', (id,))
+    note = c.fetchone()
+
+    if not note:
+        conn.close()
+        flash('Note not found!', 'error')
+        return redirect(url_for('notes_2026'))
+
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        link = request.form.get('link', '').strip()
+        file = request.files.get('file')
+
+        if not name:
+            flash('Note title is required!', 'error')
+            return redirect(url_for('edit_note_2026', id=id))
+
+        filename = note['filename']
+        if file and file.filename != '':
+            if not allowed_note_file(file.filename):
+                flash('Invalid file type!', 'error')
+                return redirect(url_for('edit_note_2026', id=id))
+
+            new_filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+            new_filename = f"note_{timestamp}_{new_filename}"
+            file.save(os.path.join(app.config['NOTES_2026_FOLDER'], new_filename))
+
+            if filename:
+                old_path = os.path.join(app.config['NOTES_2026_FOLDER'], filename)
+                if os.path.exists(old_path):
+                    os.remove(old_path)
+
+            filename = new_filename
+
+        c.execute('UPDATE notes_2026 SET name = ?, link = ?, filename = ? WHERE id = ?',
+                  (name, link, filename, id))
+        conn.commit()
+        conn.close()
+
+        flash('2026 note updated successfully!', 'success')
+        return redirect(url_for('notes_2026'))
+
+    conn.close()
+    return render_template('edit_resource.html', resource=note)
+
+@app.route('/delete-note-2026/<int:id>')
+@login_required
+def delete_note_2026(id):
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+    c.execute('SELECT filename FROM notes_2026 WHERE id = ?', (id,))
+    note = c.fetchone()
+
+    if note and note['filename']:
+        file_path = os.path.join(app.config['NOTES_2026_FOLDER'], note['filename'])
+        if os.path.exists(file_path):
+            os.remove(file_path)
+
+    c.execute('DELETE FROM notes_2026 WHERE id = ?', (id,))
+    conn.commit()
+    conn.close()
+
+    flash('2026 note deleted!', 'success')
+    return redirect(url_for('notes_2026'))
 
 @app.route('/view-resource/<int:id>')
 def view_resource(id):
@@ -310,6 +452,32 @@ def about_owner():
     
     is_admin = 'admin' in session
     return render_template('about_owner.html', owner_info=owner_info, is_admin=is_admin)
+
+@app.route('/notes-2025')
+@app.route('/notes-2026')
+def notes_2026():
+    conn = sqlite3.connect('database.db')
+    conn.row_factory = sqlite3.Row
+    c = conn.cursor()
+
+    search_query = request.args.get('search', '')
+
+    if search_query:
+        c.execute('SELECT * FROM notes_2026 WHERE name LIKE ? ORDER BY created_at ASC',
+                  ('%' + search_query + '%',))
+    else:
+        c.execute('SELECT * FROM notes_2026 ORDER BY created_at ASC')
+
+    resources = c.fetchall()
+
+    c.execute('SELECT * FROM owner_info WHERE id = 1')
+    owner_info = c.fetchone()
+
+    conn.close()
+
+    is_admin = 'admin' in session
+    return render_template('notes_2026.html', resources=resources, is_admin=is_admin,
+                          search_query=search_query, owner_info=owner_info)
 
 @app.route('/practice-mcq')
 def practice_mcq():

@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, jsonify, flash, send_from_directory
 from werkzeug.utils import secure_filename
 import os
+import shutil
 import sqlite3
 from datetime import datetime
 from functools import wraps
@@ -17,6 +18,13 @@ app.config['MCQ_ALLOWED_EXTENSIONS'] = {'pdf', 'html', 'htm', 'doc', 'docx', 'md
 
 ADMIN_PASSWORD = '4129'
 
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+SOURCE_DATABASE_PATH = os.path.join(BASE_DIR, 'database.db')
+DATABASE_PATH = os.path.join('/tmp', 'class_10_resources.db') if os.environ.get('VERCEL') else SOURCE_DATABASE_PATH
+
+if os.environ.get('VERCEL') and not os.path.exists(DATABASE_PATH):
+    shutil.copyfile(SOURCE_DATABASE_PATH, DATABASE_PATH)
+
 # Ensure upload folders exist
 os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 os.makedirs(app.config['NOTES_2026_FOLDER'], exist_ok=True)
@@ -25,7 +33,7 @@ os.makedirs(app.config['MCQ_UPLOAD_FOLDER'], exist_ok=True)
 
 # Database initialization
 def init_db():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     
     # Resources table
@@ -106,7 +114,7 @@ def login_required(f):
 #
 @app.route('/')
 def index():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -183,7 +191,7 @@ def add_resource():
                 flash('Invalid file type!', 'error')
                 return redirect(url_for('add_resource'))
         
-        conn = sqlite3.connect('database.db')
+        conn = sqlite3.connect(DATABASE_PATH)
         c = conn.cursor()
         c.execute('INSERT INTO resources (name, link, filename) VALUES (?, ?, ?)',
                   (name, link, filename))
@@ -219,7 +227,7 @@ def add_note_2026():
             flash('Invalid file type!', 'error')
             return redirect(url_for('notes_2026'))
 
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('INSERT INTO notes_2026 (name, link, filename) VALUES (?, ?, ?)',
               (name, link, filename))
@@ -232,7 +240,7 @@ def add_note_2026():
 @app.route('/edit-resource/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_resource(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -261,7 +269,7 @@ def edit_resource(id):
 @app.route('/delete-resource/<int:id>')
 @login_required
 def delete_resource(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -283,7 +291,7 @@ def delete_resource(id):
 
 @app.route('/view-note-2026/<int:id>')
 def view_note_2026(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM notes_2026 WHERE id = ?', (id,))
@@ -305,7 +313,7 @@ def view_note_2026(id):
 @app.route('/edit-note-2026/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_note_2026(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM notes_2026 WHERE id = ?', (id,))
@@ -357,7 +365,7 @@ def edit_note_2026(id):
 @app.route('/delete-note-2026/<int:id>')
 @login_required
 def delete_note_2026(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT filename FROM notes_2026 WHERE id = ?', (id,))
@@ -377,7 +385,7 @@ def delete_note_2026(id):
 
 @app.route('/view-resource/<int:id>')
 def view_resource(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -402,7 +410,7 @@ def view_resource(id):
 
 @app.route('/about-owner', methods=['GET', 'POST'])
 def about_owner():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     
@@ -456,7 +464,7 @@ def about_owner():
 @app.route('/notes-2025')
 @app.route('/notes-2026')
 def notes_2026():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
 
@@ -481,7 +489,7 @@ def notes_2026():
 
 @app.route('/practice-mcq')
 def practice_mcq():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM mcq_quizzes ORDER BY created_at DESC')
@@ -516,7 +524,7 @@ def add_mcq():
 
     file_type = filename.rsplit('.', 1)[1].lower()
 
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('INSERT INTO mcq_quizzes (title, details, filename, file_type) VALUES (?, ?, ?, ?)',
               (title, details, filename, file_type))
@@ -528,7 +536,7 @@ def add_mcq():
 
 @app.route('/mcq/<int:id>')
 def view_mcq(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM mcq_quizzes WHERE id = ?', (id,))
@@ -549,7 +557,7 @@ def mcq_file(filename):
 @app.route('/edit-mcq/<int:id>', methods=['GET', 'POST'])
 @login_required
 def edit_mcq(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM mcq_quizzes WHERE id = ?', (id,))
@@ -603,7 +611,7 @@ def edit_mcq(id):
 @app.route('/delete-mcq/<int:id>')
 @login_required
 def delete_mcq(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT filename FROM mcq_quizzes WHERE id = ?', (id,))
@@ -625,7 +633,7 @@ def delete_mcq(id):
 
 @app.route('/dpp')
 def dpp_page():
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     conn.row_factory = sqlite3.Row
     c = conn.cursor()
     c.execute('SELECT * FROM dpps ORDER BY created_at DESC')
@@ -642,7 +650,7 @@ def add_dpp():
     if not title or not drive_link:
         flash('Title and Drive link are required!', 'error')
         return redirect(url_for('dpp_page'))
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('INSERT INTO dpps (title, drive_link) VALUES (?, ?)', (title, drive_link))
     conn.commit()
@@ -658,7 +666,7 @@ def edit_dpp(id):
     if not title or not drive_link:
         flash('Title and Drive link are required!', 'error')
         return redirect(url_for('dpp_page'))
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('UPDATE dpps SET title = ?, drive_link = ? WHERE id = ?', (title, drive_link, id))
     conn.commit()
@@ -669,7 +677,7 @@ def edit_dpp(id):
 @app.route('/delete-dpp/<int:id>')
 @login_required
 def delete_dpp(id):
-    conn = sqlite3.connect('database.db')
+    conn = sqlite3.connect(DATABASE_PATH)
     c = conn.cursor()
     c.execute('DELETE FROM dpps WHERE id = ?', (id,))
     conn.commit()
